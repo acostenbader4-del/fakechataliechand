@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thornwood Institute — Staff Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: #1a1008;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(90,60,20,0.08) 28px, rgba(90,60,20,0.08) 29px),
+      repeating-linear-gradient(90deg, transparent, transparent 28px, rgba(90,60,20,0.04) 28px, rgba(90,60,20,0.04) 29px);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier Prime', monospace;
+    padding: 20px;
+  }
+  .frame {
+    width: 100%;
+    max-width: 580px;
+    border: 3px solid #5c3d1e;
+    outline: 1px solid #8a7050;
+    outline-offset: 4px;
+    background: #f0e8d0;
+    box-shadow: 0 0 60px rgba(0,0,0,0.85);
+    position: relative;
+    overflow: hidden;
+  }
+  .frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0.5;
+  }
+  .letterhead {
+    background: #2e1a08;
+    padding: 20px 28px 16px;
+    border-bottom: 3px double #8a7050;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .institute-top {
+    font-family: 'Special Elite', cursive;
+    color: #d4c89a;
+    font-size: 9px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+  .institute-name {
+    font-family: 'Special Elite', cursive;
+    color: #f0e8d0;
+    font-size: 22px;
+    letter-spacing: 3px;
+  }
+  .institute-sub {
+    font-size: 10px;
+    color: #8a7050;
+    letter-spacing: 3px;
+    font-style: italic;
+    margin-top: 2px;
+  }
+  .seal {
+    position: absolute;
+    top: 16px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border: 2px solid #8a7050;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .seal-inner {
+    font-size: 20px;
+    opacity: 0.6;
+    color: #d4c89a;
+  }
+  .seal-text {
+    font-family: 'Special Elite', cursive;
+    font-size: 7px;
+    letter-spacing: 1px;
+    color: #8a7050;
+    text-transform: uppercase;
+  }
+
+  .body {
+    padding: 28px 32px;
+    background: #e8dfc0;
+    background-image: repeating-linear-gradient(transparent, transparent 27px, rgba(90,60,20,0.1) 27px, rgba(90,60,20,0.1) 28px);
+    background-position: 0 8px;
+  }
+  .date-line {
+    font-size: 12px;
+    color: #8a7050;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+  .salutation {
+    font-family: 'Special Elite', cursive;
+    font-size: 15px;
+    color: #2e1a08;
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+  }
+  .letter-body {
+    font-size: 14px;
+    color: #1a1008;
+    line-height: 2;
+    margin-bottom: 20px;
+  }
+  .letter-body p { margin-bottom: 14px; }
+  .letter-body strong {
+    font-weight: 700;
+    color: #2e1a08;
+  }
+
+  .proceed-btn {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 11px 28px;
+    background: #2e1a08;
+    color: #f0e8d0;
+    font-family: 'Special Elite', cursive;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-decoration: none;
+    border-bottom: 3px solid #0a0500;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .proceed-btn:hover { background: #5c3d1e; }
+  .proceed-btn:active { transform: translateY(1px); border-bottom-width: 2px; }
+
+  .signature {
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid #c4b880;
+  }
+  .sig-close {
+    font-size: 13px;
+    color: #5c3d1e;
+    font-style: italic;
+    margin-bottom: 20px;
+  }
+  .sig-name {
+    font-family: 'Special Elite', cursive;
+    font-size: 16px;
+    color: #2e1a08;
+    letter-spacing: 1px;
+  }
+  .sig-title {
+    font-size: 11px;
+    color: #8a7050;
+    letter-spacing: 2px;
+    margin-top: 3px;
+  }
+  .sig-stamp {
+    position: absolute;
+    right: 32px;
+    margin-top: -48px;
+    border: 2px solid #8b1a1a;
+    color: #8b1a1a;
+    font-family: 'Special Elite', cursive;
+    font-size: 9px;
+    padding: 4px 8px;
+    letter-spacing: 2px;
+    opacity: 0.65;
+    transform: rotate(-8deg);
+    display: inline-block;
+  }
+
+  .footer-bar {
+    background: #2e1a08;
+    padding: 8px 28px;
+    border-top: 1px solid #5c3d1e;
+    font-size: 10px;
+    color: #5c3d1e;
+    letter-spacing: 2px;
+    font-style: italic;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div class="letterhead">
+    <div class="institute-top">established 1908 &nbsp;·&nbsp; ward c &nbsp;·&nbsp; restricted access</div>
+    <div class="institute-name">Thornwood Institute</div>
+    <div class="institute-sub">Department of Psychological Assessment &amp; Patient Records</div>
+    <div class="seal">
+      <div class="seal-inner">⚕</div>
+      <div class="seal-text">official</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="date-line" id="date-line"></div>
+
+    <div class="salutation">Dear Doctor,</div>
+
+    <div class="letter-body">
+      <p>
+        Welcome to Thornwood Institute. We are pleased to have you joining our staff for
+        this evening's assessment session. Your patient file has been prepared and the
+        session room is ready for your arrival.
+      </p>
+      <p>
+        Your patient, <strong>Chandler Bong</strong>, has been admitted to Ward C and is
+        awaiting your evaluation. You are encouraged to conduct the session at your own
+        pace. A selection of standard intake questions has been made available should
+        you require assistance.
+      </p>
+      <p>
+        Please note that all session transcripts are recorded for institutional purposes.
+        You may proceed to the session room when you are ready.
+      </p>
+    </div>
+
+    <a href="doctor.html" class="proceed-btn">Proceed to Session Room →</a>
+
+    <div class="signature">
+      <div class="sig-close">With regards,</div>
+      <div class="sig-name">Dr. E. Hargrove</div>
+      <div class="sig-title">Chief of Psychological Assessment · Thornwood Institute</div>
+      <div class="sig-stamp">APPROVED</div>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <span>thornwood institute — ward c</span>
+    <span>for authorised personnel only</span>
+  </div>
+</div>
+
+<script>
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const now = new Date();
+  // Display as 1940s style date
+  const d = now.getDate();
+  const suffix = d === 1 || d === 21 || d === 31 ? 'st' : d === 2 || d === 22 ? 'nd' : d === 3 || d === 23 ? 'rd' : 'th';
+  document.getElementById('date-line').textContent =
+    days[now.getDay()] + ', the ' + d + suffix + ' of ' + months[now.getMonth()] + ', ' + now.getFullYear();
+
+  // Secret: clicking the seal 3 times goes to chandler.html
+  let clicks = 0;
+  document.querySelector('.seal').addEventListener('click', () => {
+    clicks++;
+    if (clicks >= 3) window.location.href = 'chandler.html';
+  });
+</script>
+</body>
+</html>
