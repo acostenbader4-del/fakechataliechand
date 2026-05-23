@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Room — The Doctor</title>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f0e8d0;
+    --aged: #d4c89a;
+    --brown: #5c3d1e;
+    --darkbrown: #2e1a08;
+    --ink: #1a1008;
+    --fade: #8a7050;
+    --red: #8b1a1a;
+    --green: #1a4a2e;
+    --paper: #e8dfc0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: #1a1008;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(90,60,20,0.08) 28px, rgba(90,60,20,0.08) 29px),
+      repeating-linear-gradient(90deg, transparent, transparent 28px, rgba(90,60,20,0.04) 28px, rgba(90,60,20,0.04) 29px);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier Prime', monospace;
+    padding: 20px;
+  }
+  .frame {
+    width: 100%;
+    max-width: 640px;
+    border: 3px solid #5c3d1e;
+    outline: 1px solid #8a7050;
+    outline-offset: 4px;
+    background: var(--cream);
+    box-shadow: 0 0 40px rgba(0,0,0,0.8), inset 0 0 60px rgba(0,0,0,0.08);
+    position: relative;
+    overflow: hidden;
+  }
+  .frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0.5;
+  }
+  .header {
+    background: var(--darkbrown);
+    padding: 14px 20px;
+    border-bottom: 2px solid var(--brown);
+    text-align: center;
+    position: relative;
+  }
+  .header-rule {
+    font-family: 'Special Elite', cursive;
+    color: var(--aged);
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    opacity: 0.7;
+  }
+  .header h1 {
+    font-family: 'Special Elite', cursive;
+    color: var(--cream);
+    font-size: 18px;
+    letter-spacing: 2px;
+  }
+  .header-sub {
+    font-size: 10px;
+    color: var(--fade);
+    letter-spacing: 3px;
+    margin-top: 3px;
+    font-style: italic;
+  }
+  .stamp {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%) rotate(6deg);
+    border: 2px solid var(--red);
+    color: var(--red);
+    font-family: 'Special Elite', cursive;
+    font-size: 9px;
+    padding: 3px 6px;
+    letter-spacing: 2px;
+    opacity: 0.7;
+  }
+  .messages {
+    height: 360px;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--paper);
+    background-image: repeating-linear-gradient(transparent, transparent 27px, rgba(90,60,20,0.12) 27px, rgba(90,60,20,0.12) 28px);
+    background-position: 0 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--aged) var(--cream);
+  }
+  .empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--fade);
+    font-style: italic;
+    font-size: 13px;
+    gap: 6px;
+    text-align: center;
+    padding: 40px 20px;
+    opacity: 0.7;
+  }
+  .empty-glyph { font-size: 28px; opacity: 0.4; }
+  .msg-row { display: flex; flex-direction: column; gap: 2px; }
+  .msg-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--fade);
+    font-style: italic;
+  }
+  .msg-label.right { text-align: right; }
+  .bubble {
+    max-width: 80%;
+    padding: 8px 13px;
+    font-size: 14px;
+    line-height: 1.6;
+    position: relative;
+  }
+  .bubble.sent {
+    align-self: flex-end;
+    background: var(--darkbrown);
+    color: var(--cream);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+  }
+  .bubble.received {
+    align-self: flex-start;
+    background: transparent;
+    color: var(--ink);
+    border-left: 2px solid var(--brown);
+    padding-left: 12px;
+    font-style: italic;
+  }
+  .msg-time {
+    font-size: 10px;
+    color: var(--fade);
+    opacity: 0.7;
+  }
+  .msg-time.right { text-align: right; }
+  .divider-line {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--aged), transparent);
+    margin: 0 20px;
+  }
+  .input-section {
+    padding: 14px 20px;
+    background: var(--cream);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--fade);
+    font-family: 'Special Elite', cursive;
+  }
+  textarea {
+    width: 100%;
+    resize: none;
+    background: var(--paper);
+    border: 1px solid var(--aged);
+    border-bottom: 2px solid var(--brown);
+    padding: 10px 12px;
+    font-family: 'Courier Prime', monospace;
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.5;
+    outline: none;
+    min-height: 52px;
+    max-height: 100px;
+  }
+  textarea::placeholder { color: var(--fade); font-style: italic; }
+  textarea:focus { border-color: var(--brown); background: #ede3c4; }
+  .btn-row { display: flex; gap: 10px; }
+  button {
+    font-family: 'Special Elite', cursive;
+    letter-spacing: 1px;
+    font-size: 12px;
+    border: none;
+    cursor: pointer;
+    padding: 9px 16px;
+    transition: all 0.15s;
+  }
+  .btn-send {
+    background: var(--darkbrown);
+    color: var(--cream);
+    flex: 1;
+    border-bottom: 3px solid #0a0500;
+  }
+  .btn-send:hover { background: var(--brown); }
+  .btn-send:active { transform: translateY(1px); border-bottom-width: 2px; }
+  .btn-suggest {
+    background: transparent;
+    color: var(--brown);
+    border: 1px dashed var(--brown);
+    flex: 1.4;
+  }
+  .btn-suggest:hover { background: var(--aged); color: var(--darkbrown); }
+  .btn-suggest:disabled { opacity: 0.4; cursor: not-allowed; }
+  .footer {
+    background: var(--darkbrown);
+    padding: 8px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--brown);
+  }
+  .footer-text {
+    font-size: 10px;
+    color: var(--fade);
+    letter-spacing: 2px;
+    font-style: italic;
+  }
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #888;
+    transition: background 0.4s, box-shadow 0.4s;
+  }
+  .status-dot.connected {
+    background: var(--green);
+    box-shadow: 0 0 6px rgba(26,74,46,0.8);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .suggested-pill {
+    font-size: 11px;
+    color: var(--green);
+    font-style: italic;
+    padding: 2px 0;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div class="header">
+    <div class="header-rule">&#9135;&#9135;&#9135; confidential &#9135;&#9135;&#9135;</div>
+    <h1>&nbsp;</h1>
+    <div class="header-sub">Session Transcript — Ward C, Room 4</div>
+    <div class="stamp">DR. FILE</div>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="empty" id="empty-state">
+      <div class="empty-glyph">⚕</div>
+      <div>The session has not yet begun.</div>
+      <div>Compose your first inquiry below.</div>
+    </div>
+  </div>
+
+  <div class="divider-line"></div>
+
+  <div class="input-section">
+    <div class="section-label">Doctor's Inquiry</div>
+    <textarea id="doc-input" placeholder="Address the patient…" rows="2" oninput="autoResize(this)"></textarea>
+    <div class="suggested-pill" id="suggested-pill">✦ suggestion applied</div>
+    <div class="btn-row">
+      <button class="btn-suggest" id="suggest-btn" onclick="suggestQ()" disabled>✦ Suggest a Question</button>
+      <button class="btn-send" id="send-btn" onclick="sendMsg()" disabled>Transmit →</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span class="footer-text" id="footer-status">Connecting…</span>
+    <div class="status-dot" id="status-dot"></div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCxTbUUL3fMACkSllMX70zIRK4t0APIhps",
+  authDomain: "fake-chat-chand-alie.firebaseapp.com",
+  projectId: "fake-chat-chand-alie",
+  databaseURL: "https://fake-chat-chand-alie-default-rtdb.firebaseio.com",
+  storageBucket: "fake-chat-chand-alie.firebasestorage.app",
+  messagingSenderId: "530224366863",
+  appId: "1:530224366863:web:6329f46a1fa4d1729fea7a",
+  measurementId: "G-TR0XLZ16YL"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const chatRef = db.ref('session/messages');
+
+const questions = [
+  "Where did you grow up, and what was it like there?",
+  "Tell me about your family — are you close with them?",
+  "What did you want to be when you were a child?",
+  "What's something you're genuinely proud of?",
+  "Do you have any brothers or sisters?",
+  "What kind of work do you do — or did you do before coming here?",
+  "What's a place you've been that you'd like to return to?",
+  "What do you enjoy doing when you have free time?",
+  "Do you consider yourself more of a morning person or an evening person?",
+  "What's something most people don't know about you?",
+  "What's your earliest memory?",
+  "Who was your closest friend growing up?",
+  "Is there something you've always wanted to learn?",
+  "What's a small thing that makes you happy?",
+  "Do you have any rituals or habits you rely on?",
+  "What does a perfect day look like for you?",
+  "What's something you believe in strongly?",
+  "Is there a person in your life who shaped who you are?",
+  "What's a fear you've managed to overcome?",
+  "What kind of things do you find funny?",
+  "Do you prefer the city or the countryside?",
+  "What's a skill you have that surprises people?",
+  "Tell me about something you lost that you still think about.",
+  "What does home mean to you?",
+  "Is there a dream you've never told anyone about?",
+  "What's something you wish people asked you more often?",
+  "Do you think you're a good judge of character?",
+  "What was your favourite subject in school?",
+  "What's a book, film, or story that stayed with you?",
+  "How do you know when you can trust someone?",
+];
+
+let usedQ = [];
+let renderedKeys = new Set();
+
+function getTime() {
+  return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+function setConnected(yes) {
+  document.getElementById('status-dot').className = 'status-dot' + (yes ? ' connected' : '');
+  document.getElementById('footer-status').textContent = yes ? 'The Doctor — Active Session' : 'Connecting…';
+  document.getElementById('send-btn').disabled = !yes;
+  document.getElementById('suggest-btn').disabled = !yes;
+}
+
+function addBubble(msg, key) {
+  if (renderedKeys.has(key)) return;
+  renderedKeys.add(key);
+
+  const container = document.getElementById('messages');
+  const empty = document.getElementById('empty-state');
+  if (empty) empty.remove();
+
+  const isMine = msg.role === 'doctor';
+  const row = document.createElement('div');
+  row.className = 'msg-row';
+  row.dataset.key = key;
+
+  const label = document.createElement('div');
+  label.className = 'msg-label' + (isMine ? ' right' : '');
+  label.textContent = isMine ? 'The Doctor' : 'Chandler Bong';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble ' + (isMine ? 'sent' : 'received');
+  bubble.textContent = msg.text;
+
+  const time = document.createElement('div');
+  time.className = 'msg-time' + (isMine ? ' right' : '');
+  time.textContent = msg.time;
+
+  row.appendChild(label);
+  row.appendChild(bubble);
+  row.appendChild(time);
+  container.appendChild(row);
+  container.scrollTop = container.scrollHeight;
+}
+
+// Listen for new messages in real time
+chatRef.on('child_added', (snapshot) => {
+  addBubble(snapshot.val(), snapshot.key);
+});
+
+// Connection state
+db.ref('.info/connected').on('value', (snap) => {
+  setConnected(snap.val() === true);
+});
+
+function sendMsg() {
+  const input = document.getElementById('doc-input');
+  const text = input.value.trim();
+  if (!text) return;
+  chatRef.push({ role: 'doctor', text, time: getTime() });
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('suggested-pill').style.display = 'none';
+}
+
+function suggestQ() {
+  let pool = questions.filter(q => !usedQ.includes(q));
+  if (!pool.length) { usedQ = []; pool = [...questions]; }
+  const q = pool[Math.floor(Math.random() * pool.length)];
+  usedQ.push(q);
+  const input = document.getElementById('doc-input');
+  input.value = q;
+  autoResize(input);
+  document.getElementById('suggested-pill').style.display = 'block';
+  input.focus();
+}
+
+document.getElementById('doc-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+});
+</script>
+</body>
+</html>

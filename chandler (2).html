@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Room — Chandler Bong</title>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f0e8d0;
+    --aged: #d4c89a;
+    --brown: #5c3d1e;
+    --darkbrown: #2e1a08;
+    --ink: #1a1008;
+    --fade: #8a7050;
+    --red: #8b1a1a;
+    --green: #1a4a2e;
+    --paper: #e8dfc0;
+    --accent: #3a2a5e;
+    --accentlight: #6a5090;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: #0e0a18;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(58,42,94,0.1) 28px, rgba(58,42,94,0.1) 29px),
+      repeating-linear-gradient(90deg, transparent, transparent 28px, rgba(58,42,94,0.05) 28px, rgba(58,42,94,0.05) 29px);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier Prime', monospace;
+    padding: 20px;
+  }
+  .frame {
+    width: 100%;
+    max-width: 640px;
+    border: 3px solid #3a2a5e;
+    outline: 1px solid #6a5090;
+    outline-offset: 4px;
+    background: var(--cream);
+    box-shadow: 0 0 40px rgba(0,0,0,0.9), inset 0 0 60px rgba(0,0,0,0.08);
+    position: relative;
+    overflow: hidden;
+  }
+  .frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0.5;
+  }
+  .header {
+    background: #1a0e30;
+    padding: 14px 20px;
+    border-bottom: 2px solid #3a2a5e;
+    text-align: center;
+    position: relative;
+  }
+  .header-rule {
+    font-family: 'Special Elite', cursive;
+    color: #9a85c0;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    opacity: 0.7;
+  }
+  .header h1 {
+    font-family: 'Special Elite', cursive;
+    color: var(--cream);
+    font-size: 18px;
+    letter-spacing: 2px;
+  }
+  .header-sub {
+    font-size: 10px;
+    color: #9a85c0;
+    letter-spacing: 3px;
+    margin-top: 3px;
+    font-style: italic;
+  }
+  .stamp {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-5deg);
+    border: 2px solid var(--red);
+    color: var(--red);
+    font-family: 'Special Elite', cursive;
+    font-size: 9px;
+    padding: 3px 6px;
+    letter-spacing: 2px;
+    opacity: 0.7;
+  }
+  .new-question-banner {
+    background: #1a0e30;
+    color: #c8b8e8;
+    font-family: 'Special Elite', cursive;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 6px 14px;
+    text-align: center;
+    display: none;
+    border-top: 1px solid #3a2a5e;
+    border-bottom: 1px solid #3a2a5e;
+  }
+  @keyframes fadein { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+  .messages {
+    height: 360px;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--paper);
+    background-image: repeating-linear-gradient(transparent, transparent 27px, rgba(90,60,20,0.12) 27px, rgba(90,60,20,0.12) 28px);
+    background-position: 0 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--aged) var(--cream);
+  }
+  .empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--fade);
+    font-style: italic;
+    font-size: 13px;
+    gap: 6px;
+    text-align: center;
+    padding: 40px 20px;
+    opacity: 0.7;
+  }
+  .empty-glyph { font-size: 28px; opacity: 0.4; }
+  .msg-row { display: flex; flex-direction: column; gap: 2px; animation: fadein 0.25s ease; }
+  .msg-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--fade);
+    font-style: italic;
+  }
+  .msg-label.right { text-align: right; }
+  .bubble {
+    max-width: 80%;
+    padding: 8px 13px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .bubble.sent {
+    align-self: flex-end;
+    background: #1a0e30;
+    color: var(--cream);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+  }
+  .bubble.received {
+    align-self: flex-start;
+    background: transparent;
+    color: var(--ink);
+    border-left: 2px solid #3a2a5e;
+    padding-left: 12px;
+    font-style: italic;
+  }
+  .msg-time {
+    font-size: 10px;
+    color: var(--fade);
+    opacity: 0.7;
+  }
+  .msg-time.right { text-align: right; }
+  .divider-line {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--aged), transparent);
+    margin: 0 20px;
+  }
+  .input-section {
+    padding: 14px 20px;
+    background: var(--cream);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #6a5090;
+    font-family: 'Special Elite', cursive;
+  }
+  textarea {
+    width: 100%;
+    resize: none;
+    background: var(--paper);
+    border: 1px solid var(--aged);
+    border-bottom: 2px solid #3a2a5e;
+    padding: 10px 12px;
+    font-family: 'Courier Prime', monospace;
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.5;
+    outline: none;
+    min-height: 52px;
+    max-height: 100px;
+  }
+  textarea::placeholder { color: var(--fade); font-style: italic; }
+  textarea:focus { border-color: #3a2a5e; background: #ede3c4; }
+  .btn-row { display: flex; gap: 10px; }
+  button {
+    font-family: 'Special Elite', cursive;
+    letter-spacing: 1px;
+    font-size: 12px;
+    border: none;
+    cursor: pointer;
+    padding: 9px 16px;
+    transition: all 0.15s;
+  }
+  .btn-send {
+    background: #1a0e30;
+    color: var(--cream);
+    flex: 1;
+    border-bottom: 3px solid #08051a;
+  }
+  .btn-send:hover { background: #3a2a5e; }
+  .btn-send:active { transform: translateY(1px); border-bottom-width: 2px; }
+  .btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
+  .footer {
+    background: #1a0e30;
+    padding: 8px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #3a2a5e;
+  }
+  .footer-text {
+    font-size: 10px;
+    color: #9a85c0;
+    letter-spacing: 2px;
+    font-style: italic;
+  }
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #888;
+    transition: background 0.4s, box-shadow 0.4s;
+  }
+  .status-dot.connected {
+    background: var(--green);
+    box-shadow: 0 0 6px rgba(26,74,46,0.8);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div class="header">
+    <div class="header-rule">&#9135;&#9135;&#9135; patient file &#9135;&#9135;&#9135;</div>
+    <h1>&nbsp;</h1>
+    <div class="header-sub">Chandler Bong — Ward C, Room 4</div>
+    <div class="stamp">PATIENT</div>
+  </div>
+
+  <div class="new-question-banner" id="new-banner">✦ The Doctor has posed a new inquiry ✦</div>
+
+  <div class="messages" id="messages">
+    <div class="empty" id="empty-state">
+      <div class="empty-glyph">✒</div>
+      <div>Awaiting the Doctor's first inquiry.</div>
+      <div>Your response shall appear here.</div>
+    </div>
+  </div>
+
+  <div class="divider-line"></div>
+
+  <div class="input-section">
+    <div class="section-label">Chandler Bong's Response</div>
+    <textarea id="chandler-input" placeholder="Respond to the Doctor…" rows="2" oninput="autoResize(this)"></textarea>
+    <div class="btn-row">
+      <button class="btn-send" id="send-btn" onclick="sendMsg()" disabled>Submit Response →</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span class="footer-text" id="footer-status">Connecting…</span>
+    <div class="status-dot" id="status-dot"></div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCxTbUUL3fMACkSllMX70zIRK4t0APIhps",
+  authDomain: "fake-chat-chand-alie.firebaseapp.com",
+  projectId: "fake-chat-chand-alie",
+  databaseURL: "https://fake-chat-chand-alie-default-rtdb.firebaseio.com",
+  storageBucket: "fake-chat-chand-alie.firebasestorage.app",
+  messagingSenderId: "530224366863",
+  appId: "1:530224366863:web:6329f46a1fa4d1729fea7a",
+  measurementId: "G-TR0XLZ16YL"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const chatRef = db.ref('session/messages');
+
+let renderedKeys = new Set();
+let isFirstLoad = true;
+
+function getTime() {
+  return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+function setConnected(yes) {
+  document.getElementById('status-dot').className = 'status-dot' + (yes ? ' connected' : '');
+  document.getElementById('footer-status').textContent = yes ? 'Chandler Bong — Patient' : 'Reconnecting…';
+  document.getElementById('send-btn').disabled = !yes;
+}
+
+function showBanner() {
+  const banner = document.getElementById('new-banner');
+  banner.style.display = 'block';
+  banner.style.animation = 'fadein 0.3s ease';
+  setTimeout(() => { banner.style.display = 'none'; }, 3500);
+}
+
+function addBubble(msg, key) {
+  if (renderedKeys.has(key)) return;
+  renderedKeys.add(key);
+
+  const container = document.getElementById('messages');
+  const empty = document.getElementById('empty-state');
+  if (empty) empty.remove();
+
+  const isMine = msg.role === 'chandler';
+
+  // Show banner only for incoming doctor messages after initial load
+  if (!isFirstLoad && msg.role === 'doctor') {
+    showBanner();
+  }
+
+  const row = document.createElement('div');
+  row.className = 'msg-row';
+
+  const label = document.createElement('div');
+  label.className = 'msg-label' + (isMine ? ' right' : '');
+  label.textContent = isMine ? 'Chandler Bong' : 'The Doctor';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble ' + (isMine ? 'sent' : 'received');
+  bubble.textContent = msg.text;
+
+  const time = document.createElement('div');
+  time.className = 'msg-time' + (isMine ? ' right' : '');
+  time.textContent = msg.time;
+
+  row.appendChild(label);
+  row.appendChild(bubble);
+  row.appendChild(time);
+  container.appendChild(row);
+  container.scrollTop = container.scrollHeight;
+}
+
+// Load existing messages first, then listen for new ones
+chatRef.once('value', (snapshot) => {
+  if (snapshot.exists()) {
+    snapshot.forEach(child => {
+      addBubble(child.val(), child.key);
+    });
+  }
+  isFirstLoad = false;
+
+  // Now listen for new messages only
+  chatRef.on('child_added', (snapshot) => {
+    addBubble(snapshot.val(), snapshot.key);
+  });
+});
+
+// Connection state
+db.ref('.info/connected').on('value', (snap) => {
+  setConnected(snap.val() === true);
+});
+
+function sendMsg() {
+  const input = document.getElementById('chandler-input');
+  const text = input.value.trim();
+  if (!text) return;
+  chatRef.push({ role: 'chandler', text, time: getTime() });
+  input.value = '';
+  input.style.height = 'auto';
+}
+
+document.getElementById('chandler-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+});
+</script>
+</body>
+</html>
